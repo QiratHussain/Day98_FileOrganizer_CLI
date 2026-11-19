@@ -32,4 +32,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     return parser
 
+def main() -> None:
+    args = build_parser().parse_args()
 
+    try:
+        org = FileOrganizer(
+            target_dir=args.directory,
+            skip_hidden=not args.include_hidden,
+        )
+    except (FileNotFoundError, NotADirectoryError) as e:
+        print(f"Error: {e}")
+        return
+
+    if args.preview:
+        plan = org.preview()
+        print(f"\n📁 Preview for: {org.target_dir}\n")
+        if not plan:
+            print("  (no files found)")
+        for category, files in sorted(plan.items()):
+            print(f"  {category} ({len(files)}):")
+            for f in files:
+                print(f"    - {f}")
+        print("\n(No files were moved. Use --dry-run to see the plan in action.)\n")
+        return
+
+    org.organize(dry_run=args.dry_run)
+
+
+
+
+if __name__ == "__main__":
+    main()
