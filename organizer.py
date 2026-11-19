@@ -1,9 +1,8 @@
 from pathlib import Path
 from datetime import datetime
 import shutil
-
-from .rules import get_category
-from .logger import setup_logger
+from rules import get_category
+from logger import setup_logger
 
 
 class FileOrganizer:
@@ -31,6 +30,51 @@ class FileOrganizer:
 
         self.logger.info(f"Found {len(files)} file(s) in {self.target_dir}")
         return files
+
+
+    # ---------- Core action ----------
+    def organize(self, dry_run: bool = False) -> dict:
+        """
+        Move files into category folders.
+
+        Returns a summary dict:
+            {
+                "moved": [(src, dest), ...],
+                "skipped": [(path, reason), ...],
+                "dry_run": bool,
+            }
+        """
+        files = self.scan()
+        summary = {"moved": [], "skipped": [], "dry_run": dry_run}
+
+        if not files:
+            self.logger.info("Nothing to do.")
+            return summary
+
+        for file in files:
+            try:
+                destination = self._destination_for(file)
+                summary["moved"].append((file, destination))
+
+                if dry_run:
+                    self.logger.info(f"[DRY-RUN] {file.name} → {destination.parent.name}/")
+                else:
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    destination = self._unique_path(destination)
+                    shutil.move(str(file), str(destination))
+                    self.logger.info(f"Moved: {file.name} → {destination.parent.name}/")
+
+            except PermissionError:
+                reason = "Permission denied"
+                summary["skipped"].append((file, reason))
+                self.logger.warning(f"Skipped {file.name}: {reason}")
+
+            except Exception as e:
+                summary["skipped"].append((file, str(e)))
+                self.logger.error(f"Error with {file.name}: {e}")
+
+        self._log_summary(summary)
+        return summary
 
 
 
