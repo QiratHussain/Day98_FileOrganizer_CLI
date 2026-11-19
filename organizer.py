@@ -61,3 +61,15 @@ class FileOrganizer:
             f"[{mode}] Moved {len(summary['moved'])}, "
             f"skipped {len(summary['skipped'])}"
         )
+
+    # ---------- Info ----------
+    def preview(self) -> dict:
+        """Return a dict: {category: [filenames]} without moving anything."""
+        plan = {}
+        for file in self.scan():
+            category = get_category(file.suffix)
+            plan.setdefault(category, []).append(file.name)
+        return plan
+
+    def __repr__(self) -> str:
+        return f"FileOrganizer(target_dir='{self.target_dir}')"
