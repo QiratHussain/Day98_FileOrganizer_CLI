@@ -39,3 +39,17 @@ class FileOrganizer:
         """Return the full destination path for a file."""
         category = get_category(file.suffix)
         return self.target_dir / category / file.name
+
+
+    def _unique_path(self, path: Path) -> Path:
+        """If a file with that name exists, add a numeric suffix."""
+        if not path.exists():
+            return path
+
+        stem, suffix = path.stem, path.suffix
+        counter = 1
+        while True:
+            new_path = path.with_name(f"{stem}_{counter}{suffix}")
+            if not new_path.exists():
+                return new_path
+            counter += 1
