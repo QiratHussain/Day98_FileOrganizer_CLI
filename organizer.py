@@ -31,3 +31,11 @@ class FileOrganizer:
 
         self.logger.info(f"Found {len(files)} file(s) in {self.target_dir}")
         return files
+
+
+
+    # ---------- Helpers ----------
+    def _destination_for(self, file: Path) -> Path:
+        """Return the full destination path for a file."""
+        category = get_category(file.suffix)
+        return self.target_dir / category / file.name
