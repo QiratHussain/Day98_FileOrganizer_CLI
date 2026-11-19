@@ -53,3 +53,11 @@ class FileOrganizer:
             if not new_path.exists():
                 return new_path
             counter += 1
+
+
+    def _log_summary(self, summary: dict) -> None:
+        mode = "DRY-RUN" if summary["dry_run"] else "DONE"
+        self.logger.info(
+            f"[{mode}] Moved {len(summary['moved'])}, "
+            f"skipped {len(summary['skipped'])}"
+        )
